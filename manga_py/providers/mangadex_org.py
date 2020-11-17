@@ -166,11 +166,12 @@ class MangaDexOrg(Provider, Std):
             return
 
         information = self.content['manga']
-        manga_code = self.original_url.rsplit('/', 2)[1]
+        manga_code = self.original_url.rstrip('/').rsplit('/', 2)[1]
         covers = {
             MangaDexOrg.extract_cover_volume_number(cover): '{}{}'.format(self.domain, cover)
             for cover in information['covers'] if MangaDexOrg.standard_cover_url_pattern(cover, manga_code)
         }
+        covers[''] = self.get_cover()
 
         return {
             "title": information['title'],
