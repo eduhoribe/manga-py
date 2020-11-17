@@ -1,3 +1,5 @@
+import re
+
 from manga_py.provider import Provider
 from .helpers.std import Std
 from ..crypt.bato_to_crypt import BatoToCrypt
@@ -69,6 +71,38 @@ class BatoTo(Provider, Std):
 
     def chapter_for_json(self):
         return self.chapter[0]
+
+    # region specified data for eduhoribe/comic-builder
+
+    def chapter_details(self, chapter) -> dict:
+
+        volume = re.search('Volume \\d+', chapter[1])
+        volume = re.findall('\\d+', volume.group())[0] if volume is not None else None
+
+        chapter = re.search('Chapter \\d+', chapter[1])
+        chapter = re.findall('\\d+', chapter.group())[0] if chapter is not None else None
+
+        return {
+            "chapter": chapter,
+            "volume": volume,
+            "title": None,
+            "language": None,
+            "publisher": None,
+        }
+
+    def manga_details(self):
+        authors = [author.text for author in self._elements('.attr-item > span > a')]
+        description = '\n'.join([desc.text for desc in self._elements('.attr-main > pre')])
+
+        return {
+            "title": self.get_manga_name(),
+            "description": description,
+            "authors": authors,
+            "sauce": self.original_url,
+            "volume_covers": {"": self.get_cover()},
+        }
+
+    # endregion
 
 
 main = BatoTo
